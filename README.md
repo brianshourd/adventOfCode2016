@@ -13,9 +13,8 @@ stack build       # To build
 stack exec main   # To see all answers
 ```
 
-It is possible to do some highly effective TDD with the following command, which
-continuosly watches the file system and rebuilds/reruns tests whenever a file
-changes.
+I find the following command to be very useful for TDD. It continuosly watches
+the file system and rebuilds/reruns tests whenever a file changes.
 
 ```
 stack test --fast --file-watch
