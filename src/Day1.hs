@@ -1,60 +1,49 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Day1 (day1, day1', run, firstVisitedTwice, Instruction(..), takeSteps) where
+module Day1 (day1, day1', run) where
 
-import Data.Attoparsec.Text
-    ( Parser(..)
-    , char
-    , choice
-    , decimal
-    , eitherP
-    , parseOnly
-    , sepBy1
-    , string
-    )
+import Control.Applicative (optional)
+import Control.Monad (liftM2)
+import Data.Attoparsec.Text (Parser(..), char, choice, decimal, many1, parseOnly, string)
 import Data.List (foldl')
 import Data.Set (Set)
 import qualified Data.Set as Set (empty, member, insert)
 import Data.Text (pack)
 
 -- Data types
-data Instruction = R Int | L Int deriving (Eq, Ord, Show)
+data TurnDirection = TurnRight | TurnLeft deriving (Eq, Ord, Show)
+data Instruction = Instruction TurnDirection Int deriving (Eq, Ord, Show)
 type Direction = (Int, Int)
 type Location = (Int, Int)
 
--- Parse input
 parseInput :: String -> Either String [Instruction]
-parseInput input = parseOnly parseInstructions (pack input)
+parseInput input = parseOnly (many1 parseInstruction) (pack input)
   where
-    parseInstructions = sepBy1 parseInstruction (string ", ")
-    parseInstruction = do
-        constructor <- choice [(char 'L') >> pure L, (char 'R') >> pure R]
-        steps <- decimal
-        return $ constructor steps
-
-rotate :: Direction -> Instruction -> Direction
-rotate (a, b) (R _) = (b, -a)
-rotate (a, b) (L _) = (-b, a)
-
-steps :: Instruction -> Int
-steps (R s) = s
-steps (L s) = s
-
--- Returns all of the locations visited, most recent first
-takeSteps :: Direction -> Location -> Int -> [Location]
-takeSteps (a, b) (x, y) s = take s . iterate (\(x', y') -> (x' - a, y' - b)) $ (x + s * a, y + s * b)
+    parseInstruction = liftM2 Instruction parseTurnDirection decimal <* optional (string ", ")
+    parseTurnDirection = choice [char 'L' >> pure TurnLeft, char 'R' >> pure TurnRight]
 
 distance :: Location -> Int
 distance (a, b) = (abs a) + (abs b)
 
+turn :: Direction -> TurnDirection -> Direction
+turn (a, b) TurnRight = (b, -a)
+turn (a, b) TurnLeft  = (-b, a)
+
+goForward :: Direction -> Location -> Int -> [Location]
+goForward (a, b) (x, y) s = reverse . take s . drop 1 . iterate (\(x', y') -> (x' + a, y' + b)) $ (x, y)
+
+followSingle :: (Direction, Location) -> Instruction -> (Direction, [Location])
+followSingle (d, l) (Instruction t s) = let d' = turn d t in (d', goForward d' l s)
+
 -- Returns all of the locations visited, most recent first
-allLocations :: [Instruction] -> [Location]
-allLocations = snd . foldl' follow1 ((0, 1), [(0, 0)])
+-- This is the core of the problem
+follow :: [Instruction] -> [Location]
+follow = concat . snd . foldl' go ((0, 1), [[(0, 0)]])
   where
-    follow1 :: (Direction, [Location]) -> Instruction -> (Direction, [Location])
-    follow1 (d, ls) i = let d' = rotate d i in (d', (takeSteps d' (head ls) (steps i)) ++ ls)
+    go :: (Direction, [[Location]]) -> Instruction -> (Direction, [[Location]])
+    go (d, lls) i = let (d', ls) = followSingle (d, (head . head $ lls)) i in (d', ls : lls)
 
 firstVisitedTwice :: [Instruction] -> Maybe Location
-firstVisitedTwice = either Just (const Nothing) . foldr haveSeen (Right Set.empty) . allLocations
+firstVisitedTwice = either Just (const Nothing) . foldr haveSeen (Right Set.empty) . follow
   where
     haveSeen :: Location -> Either Location (Set Location) -> Either Location (Set Location)
     haveSeen l (Right s) = if Set.member l s then Left l else Right $ Set.insert l s
@@ -62,7 +51,7 @@ firstVisitedTwice = either Just (const Nothing) . foldr haveSeen (Right Set.empt
 
 -- Final, top-level exports
 day1 :: String -> Int
-day1 = either (const (-1)) (distance . head . allLocations) . parseInput
+day1 = either (const (-1)) (distance . head . follow) . parseInput
 
 day1' :: String -> Int
 day1' = either (const (-1)) (maybe (-2) id . fmap distance . firstVisitedTwice) . parseInput
