@@ -29,25 +29,22 @@ turn (a, b) TurnRight = (b, -a)
 turn (a, b) TurnLeft  = (-b, a)
 
 goForward :: Direction -> Location -> Int -> [Location]
-goForward (a, b) (x, y) s = reverse . take s . drop 1 . iterate (\(x', y') -> (x' + a, y' + b)) $ (x, y)
-
-followSingle :: (Direction, Location) -> Instruction -> (Direction, [Location])
-followSingle (d, l) (Instruction t s) = let d' = turn d t in (d', goForward d' l s)
+goForward (a, b) (x, y) s = map (\t -> (x + (s - t) * a, y + (s - t) * b)) [0..(s-1)]
 
 -- Returns all of the locations visited, most recent first
 -- This is the core of the problem
 follow :: [Instruction] -> [Location]
-follow = concat . snd . foldl' go ((0, 1), [[(0, 0)]])
+follow = snd . foldl' go ((0, 1), [(0, 0)])
   where
-    go :: (Direction, [[Location]]) -> Instruction -> (Direction, [[Location]])
-    go (d, lls) i = let (d', ls) = followSingle (d, (head . head $ lls)) i in (d', ls : lls)
+    go :: (Direction, [Location]) -> Instruction -> (Direction, [Location])
+    go (d, ls) (Instruction t s) = let d' = turn d t in (d', (goForward d' (head ls) s) ++ ls)
 
 firstVisitedTwice :: [Instruction] -> Maybe Location
 firstVisitedTwice = either Just (const Nothing) . foldr haveSeen (Right Set.empty) . follow
   where
     haveSeen :: Location -> Either Location (Set Location) -> Either Location (Set Location)
-    haveSeen l (Right s) = if Set.member l s then Left l else Right $ Set.insert l s
     haveSeen _ (Left l) = Left l
+    haveSeen l (Right s) = if Set.member l s then Left l else Right $ Set.insert l s
 
 -- Final, top-level exports
 day1 :: String -> Int
