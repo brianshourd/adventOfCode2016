@@ -32,7 +32,7 @@ calculateCode inBounds = tail . reverse . foldl go [(0, 0)]
 
 -- Describing constraints of part 1
 boundsFunction :: Location -> Bool
-boundsFunction (x, y) = x <= 1 && x >= -1 && y <= 1 && y >= -1
+boundsFunction (x, y) = (abs x) <= 1 && (abs y) <= 1
 
 lookupValue :: Location -> Char
 lookupValue (x, y) = (table !! (y + 1)) !! (x + 1)
