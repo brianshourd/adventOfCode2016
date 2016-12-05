@@ -2,7 +2,6 @@ module Day4Spec (spec) where
 
 import Day4
 import Test.Hspec
-import Data.Either (rights)
 
 main :: IO ()
 main = hspec spec
