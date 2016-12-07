@@ -1,26 +1,42 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Day7 (day7, day7', run) where
 
-import Control.Monad (liftM2)
-import Data.Attoparsec.Text (Parser(..), char, parseOnly, many1, takeTill)
 import Data.Either (rights)
 import Data.List (intersect)
-import Data.Text (pack, unpack)
+import Text.Parsec
+    ( (<|>)
+    , Parsec
+    , ParseError
+    , char
+    , getState
+    , many1
+    , modifyState
+    , noneOf
+    , runParser
+    , try
+    )
 
 data IP = IP
     [String] -- regular sequences
     [String] -- hypernet sequences
     deriving (Eq, Ord, Show)
 
-parseLine :: String -> Either String IP
-parseLine = parseOnly parseIP . pack
+parseLine :: String -> Either ParseError IP
+parseLine = runParser parseIP ([], []) ""
+
+parseIP :: Parsec String ([String], [String]) IP
+parseIP = do
+    many1 $ try parseRegular <|> parseHyper
+    (reg, hyper) <- getState
+    return $ IP (reverse reg) (reverse hyper)
   where
-    parseIP = do
-        (reg, hyper) <- fmap unzip . many1 $
-            liftM2 (,) parseSequence (char '[' *> parseSequence <* char ']')
-        final <- parseSequence
-        return $ IP (reg ++ [final]) hyper
-    parseSequence = fmap unpack $ takeTill (\x -> x == '[' || x == ']')
+    parseRegular = do
+        seq <- parseSequence
+        modifyState (\(reg, hyper) -> (seq : reg, hyper))
+    parseHyper = do
+        seq <- char '[' *> parseSequence <* char ']'
+        modifyState (\(reg, hyper) -> (reg, seq : hyper))
+    parseSequence = many1 (noneOf "[]")
 
 supportsTLS :: IP -> Bool
 supportsTLS (IP reg hyper) = (any containsABBA reg) && (all (not . containsABBA) hyper)
