@@ -4,16 +4,15 @@ module Day7 (day7, day7', run) where
 import Data.Either (rights)
 import Data.List (intersect)
 import Text.Parsec
-    ( (<|>)
-    , Parsec
-    , ParseError
+    ( ParseError
+    , between
     , char
     , getState
     , many1
     , modifyState
     , noneOf
     , runParser
-    , try
+    , sepBy1
     )
 
 data IP = IP
@@ -22,20 +21,10 @@ data IP = IP
     deriving (Eq, Ord, Show)
 
 parseLine :: String -> Either ParseError IP
-parseLine = runParser parseIP ([], []) ""
-
-parseIP :: Parsec String ([String], [String]) IP
-parseIP = do
-    many1 $ try parseRegular <|> parseHyper
-    (reg, hyper) <- getState
-    return $ IP (reverse reg) (reverse hyper)
+parseLine = runParser parseIP [] ""
   where
-    parseRegular = do
-        seq <- parseSequence
-        modifyState (\(reg, hyper) -> (seq : reg, hyper))
-    parseHyper = do
-        seq <- char '[' *> parseSequence <* char ']'
-        modifyState (\(reg, hyper) -> (reg, seq : hyper))
+    parseIP = IP <$> sepBy1 parseSequence parseHyper <*> (reverse <$> getState)
+    parseHyper = between (char '[') (char ']') parseSequence >>= modifyState . (:)
     parseSequence = many1 (noneOf "[]")
 
 supportsTLS :: IP -> Bool

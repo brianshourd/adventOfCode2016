@@ -1,15 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Day3 (day3, day3', run) where
 
-import Control.Applicative (optional)
-import Data.Attoparsec.Text (Parser(..), decimal, parseOnly, sepBy, skipSpace)
 import Data.Either (rights)
 import Data.List (sort, transpose)
 import Data.List.Split (chunksOf)
-import Data.Text (pack)
+import Text.Parsec (ParseError, digit, many1, parse, sepBy1, spaces)
 
-parseLine :: String -> Either String [Int]
-parseLine = parseOnly (optional skipSpace >> decimal `sepBy` skipSpace) . pack
+parseLine :: String -> Either ParseError [Int]
+parseLine = parse (spaces *> sepBy1 (read <$> many1 digit) spaces) ""
 
 parseInput :: String -> [[Int]]
 parseInput = rights . map parseLine . lines

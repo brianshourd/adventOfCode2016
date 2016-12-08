@@ -1,13 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Day1 (day1, day1', run) where
 
-import Control.Applicative (optional)
-import Control.Monad (liftM2)
-import Data.Attoparsec.Text (Parser(..), char, choice, decimal, many1, parseOnly, string)
 import Data.List (foldl')
 import Data.Set (Set)
 import qualified Data.Set as Set (empty, member, insert)
-import Data.Text (pack)
+import Text.Parsec
+    ( ParseError
+    , char
+    , choice
+    , digit
+    , many1
+    , parse
+    , sepBy1
+    , string
+    )
 
 -- Data types
 data TurnDirection = TurnRight | TurnLeft deriving (Eq, Ord, Show)
@@ -15,11 +21,11 @@ data Instruction = Instruction TurnDirection Int deriving (Eq, Ord, Show)
 type Direction = (Int, Int)
 type Location = (Int, Int)
 
-parseInput :: String -> Either String [Instruction]
-parseInput input = parseOnly (many1 parseInstruction) (pack input)
+parseInput :: String -> Either ParseError [Instruction]
+parseInput = parse (sepBy1 parseInstruction (string ", ")) ""
   where
-    parseInstruction = liftM2 Instruction parseTurnDirection decimal <* optional (string ", ")
-    parseTurnDirection = choice [char 'L' >> pure TurnLeft, char 'R' >> pure TurnRight]
+    parseInstruction = Instruction <$> parseTurnDirection <*> (read <$> many1 digit)
+    parseTurnDirection = choice [TurnLeft <$ char 'L', TurnRight <$ char 'R']
 
 distance :: Location -> Int
 distance (a, b) = (abs a) + (abs b)

@@ -1,34 +1,30 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Day4 (day4, day4', run, decrypt, RoomData(..)) where
 
-import Data.Attoparsec.Text
-    ( Parser(..)
-    , char
-    , decimal
-    , parseOnly
-    , sepBy
-    , takeTill
-    , takeWhile1
-    )
 import Data.Char (chr, isLower, ord)
 import Data.Either (rights)
 import Data.List (group, sort, sortOn)
-import Data.Text (pack, unpack)
+import Text.Parsec
+    ( ParseError
+    , between
+    , char
+    , digit
+    , endBy1
+    , lower
+    , many1
+    , parse
+    )
 
 data RoomData = RoomData [String] Int String deriving (Eq, Ord, Show)
 
-parseRoomData :: String -> Either String RoomData
-parseRoomData = parseOnly parseImpl . pack
+parseRoomData :: String -> Either ParseError RoomData
+parseRoomData = parse parseImpl ""
   where
-    parseImpl :: Parser RoomData
     parseImpl = do
-        encryptedName <- (takeWhile1 isLower) `sepBy` char '-'
-        char '-'
-        sectorId <- decimal
-        char '['
-        checksum <- takeTill ((==) ']')
-        char ']'
-        return $ RoomData (map unpack encryptedName) sectorId (unpack checksum)
+        encryptedName <- endBy1 (many1 lower) (char '-')
+        sectorId <- read <$> many1 digit
+        checksum <- between (char '[') (char ']') (many1 lower)
+        return $ RoomData encryptedName sectorId checksum
 
 isValid :: RoomData -> Bool
 isValid (RoomData name _ checksum) = (take 5 . map head . sortOn (negate . length) . group . sort . concat $ name) == checksum
