@@ -28,6 +28,7 @@ library
                      , Day11
                      , Day12
                      , Day13
+                     , Day14
   build-depends:       base >= 4.7 && < 5
                      , array
                      , base16-bytestring
@@ -35,6 +36,7 @@ library
                      , containers
                      , cryptohash
                      , parsec
+                     , regex-pcre
                      , split
                      , vector
   default-language:    Haskell2010
@@ -54,6 +56,7 @@ test-suite full-test
   build-depends:       base
                      , adventOfCode2016
                      , array
+                     , bytestring
                      , hspec-discover
                      , hspec
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N

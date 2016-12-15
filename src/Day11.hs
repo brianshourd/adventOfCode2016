@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- |This module solves the problem presented as
--- <http://adventofcode.com/2016/day/11 day 11 of the 2016 advent of code>
+-- <http://adventofcode.com/2016/day/11 day 11 of the 2016 advent of code>. The
+-- code is also viewable
+-- <https://github.com/brianshourd/adventOfCode2016/blob/master/src/Day11.hs on github>.
 module Day11 (
 -- * Maze-solving algorithm
 -- |First, let's talk about solving a maze. A plain-old, two-dimensional maze.
