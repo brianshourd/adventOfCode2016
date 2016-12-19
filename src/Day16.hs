@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 module Day16 where
 
 import Data.Bits
