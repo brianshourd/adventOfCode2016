@@ -106,10 +106,12 @@ module Day11 (
     , State(..)
     , buildState
     , adjacentStates
+    , destroysChips
     -- * Actually solve the problem
     , day11
     , day11'
     , run
+    , desiredState
     -- * Input parsing
     , parseInput
     ) where
