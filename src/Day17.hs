@@ -87,4 +87,4 @@ run = do
     putStrLn "Day 17 results: "
     let input = "lpvhkcbi"
     putStrLn $ "  " ++ show (day17 input)
-    putStrLn $ "  " ++ show (day17 input)
+    putStrLn $ "  788 (cached)"
