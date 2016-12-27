@@ -18,6 +18,7 @@ import qualified Day15
 import qualified Day16
 import qualified Day17
 import qualified Day18
+import qualified Day19
 
 main :: IO ()
 main = do
@@ -39,3 +40,4 @@ main = do
     Day16.run
     Day17.run
     Day18.run
+    Day19.run
