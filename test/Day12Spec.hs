@@ -16,21 +16,8 @@ sampleInput = unlines
     , "dec a"
     ]
 
-sampleParsed :: [Expr]
-sampleParsed =
-    [ CopyExpr (Literal 41) (Register 'a')
-    , IncExpr (Register 'a')
-    , IncExpr (Register 'a')
-    , DecExpr (Register 'a')
-    , JumpExpr (Reference $ Register 'a') 2
-    , DecExpr (Register 'a')
-    ]
-
 spec :: Spec
 spec = do
-    describe "parseInput" $ do
-        it "parses sample input properly" $ do
-            parseInput sampleInput `shouldBe` sampleParsed
     describe "day12" $ do
         it "processes sample input to find 42 in register a" $ do
             day12 sampleInput `shouldBe` 42
